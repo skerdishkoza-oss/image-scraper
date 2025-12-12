@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professional Image Scraper</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e293b 0%, #7e22ce 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    h1 {
+      color: white;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: #e9d5ff;
+      margin-bottom: 2rem;
+    }
+    .input-group {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    input {
+      flex: 1;
+      padding: 1rem;
+      border-radius: 10px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 1rem;
+    }
+    input::placeholder { color: #e9d5ff; }
+    button {
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      border: none;
+      background: #7c3aed;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    button:hover { background: #6d28d9; transform: translateY(-2px); }
+    button:disabled { background: #4c1d95; cursor: not-allowed; }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .stats {
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .filter-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .filter-group select {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .filter-group select option {
+      background: #1e293b;
+      color: white;
+    }
+    .filter-group label {
+      color: white;
+      font-size: 0.9rem;
+    }
+    .export-btn {
+      background: #10b981;
+      padding: 0.75rem 1.5rem;
+    }
+    .export-btn:hover { background: #059669; }
+    table {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      border-collapse: collapse;
+    }
+    th {
+      background: rgba(124, 58, 237, 0.3);
+      color: white;
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+    th:hover {
+      background: rgba(124, 58, 237, 0.5);
+    }
+    td {
+      padding: 1rem;
+      color: #e9d5ff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    tr:hover { background: rgba(255, 255, 255, 0.05); }
+    img.preview {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    img.preview:hover {
+      transform: scale(1.1);
+      border-color: #7c3aed;
+    }
+    .url-cell {
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .url-link {
+      color: #a78bfa;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .url-link:hover {
+      color: #c4b5fd;
+      text-decoration: underline;
+    }
+    .error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 2px solid #ef4444;
+      color: #fca5a5;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+    }
+    .loading { display: none; }
+    .loading.active { display: inline-block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Professional Image Scraper</h1>
+    <p class="subtitle">Extract all images from any webpage instantly</p>
+
+    <div class="input-group">
+      <input type="text" id="urlInput" placeholder="Enter webpage URL (e.g., https://example.com)">
+      <button onclick="scrapeImages()" id="scrapeBtn">
+        <span class="loading" id="loading">⏳ Scraping...</span>
+        <span id="btnText">Scrape Images</span>
+      </button>
+    </div>
+
+    <div id="error" class="error" style="display: none;"></div>
+
+    <div id="results" style="display: none;">
+      <div class="controls">
+        <div class="stats">
+          <div>Found <strong id="count">0</strong> images</div>
+          <div style="color: #a78bfa;">|</div>
+          <div>Showing <strong id="filteredCount">0</strong></div>
+        </div>
+
+        <div class="filter-group">
+          <label for="sizeFilter">Filter by size:</label>
+          <select id="sizeFilter" onchange="filterImages()">
+            <option value="all">All Sizes</option>
+            <option value="large">Large (>500 KB)</option>
+            <option value="medium">Medium (100-500 KB)</option>
+            <option value="small">Small (<100 KB)</option>
+            <option value="unknown">Unknown Size</option>
+          </select>
+
+          <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortTable(0)">#</th>
+              <th>Preview</th>
+              <th onclick="sortTable(2)">URL</th>
+              <th onclick="sortTable(3)">Dimensions</th>
+              <th onclick="sortTable(4)">File Size ▼</th>
+              <th onclick="sortTable(5)">Alt Text</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
