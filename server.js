@@ -26,8 +26,13 @@ let browser = null;
 
 async function getBrowser() {
   if (!browser) {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     browser = await puppeteer.launch({
       headless: 'new',
+      executablePath: isProduction 
+        ? process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable'
+        : puppeteer.executablePath(),
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -35,7 +40,8 @@ async function getBrowser() {
         '--disable-accelerated-2d-canvas',
         '--no-first-run',
         '--no-zygote',
-        '--disable-gpu'
+        '--disable-gpu',
+        '--single-process'
       ]
     });
   }
